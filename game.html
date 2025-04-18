@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sam & Breanna Trivia!</title>
+    <style>
+        :root {
+            --blush-pink: #FADADD; /* Lighter, softer pink */
+            --dull-blue: #8FA8BF;
+            --sage-green: #8FBC8F; /* More distinct green */
+            --brown: #A0522D; /* Sienna brown */
+            --background-light: #fefcf9;
+            --text-dark: #333;
+            --correct-color: #6aaa64;
+            --incorrect-color: #d9534f;
+            --button-hover: #e0e0e0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .trivia-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--dull-blue);
+            margin-bottom: 25px;
+        }
+
+        #question-area {
+            margin-bottom: 30px;
+        }
+
+        #question-number {
+             font-size: 0.9em;
+             color: #777;
+             margin-bottom: 5px;
+        }
+
+        #question-text {
+            font-size: 1.6em;
+            font-weight: bold;
+            color: var(--brown);
+            margin-bottom: 20px;
+            min-height: 50px; /* Prevent layout shift */
+        }
+
+        #answer-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .answer-btn {
+            padding: 20px 15px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            min-height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            line-height: 1.3; /* Improve text wrapping */
+            word-wrap: break-word; /* Ensure long text wraps */
+            hyphens: auto; /* Add hyphens if needed */
+        }
+
+        /* Assign colors using nth-child */
+        .answer-btn:nth-child(4n+1) { background-color: var(--blush-pink); color: var(--text-dark); }
+        .answer-btn:nth-child(4n+2) { background-color: var(--dull-blue); }
+        .answer-btn:nth-child(4n+3) { background-color: var(--sage-green); }
+        .answer-btn:nth-child(4n+4) { background-color: var(--brown); }
+
+
+        .answer-btn:not(:disabled):hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .answer-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .answer-btn.correct {
+            background-color: var(--correct-color) !important; /* Override nth-child */
+            color: white !important;
+            border: 3px solid #5a9a54; /* Darker green border */
+            opacity: 1 !important; /* Ensure it's fully opaque */
+        }
+
+        .answer-btn.incorrect {
+             background-color: var(--incorrect-color) !important; /* Override nth-child */
+             color: white !important;
+             opacity: 0.6; /* Dim incorrect answers that weren't selected */
+        }
+
+        /* Style for the specifically selected wrong answer */
+        .answer-btn.selected-incorrect {
+             background-color: var(--incorrect-color) !important; /* Override nth-child */
+             color: white !important;
+             opacity: 1.0 !important; /* Keep the selected one fully visible */
+             border: 3px solid #b8423e; /* Darker red border */
+        }
+
+
+        #fill-in-blank-area {
+            margin-bottom: 20px;
+            display: none; /* Hidden by default */
+            justify-content: center; /* Center items */
+            align-items: center; /* Align items vertically */
+            gap: 10px; /* Space between input and button */
+        }
+
+        #fill-in-blank-input {
+            padding: 12px 15px;
+            font-size: 1.1em;
+            border-radius: 8px;
+            border: 2px solid var(--dull-blue);
+            /* margin-right: 10px; */ /* Replaced by gap */
+            width: 60%; /* Adjust width as needed */
+            box-sizing: border-box;
+        }
+
+        #fill-in-blank-submit {
+            padding: 12px 20px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: var(--sage-green);
+            color: white;
+            transition: background-color 0.3s ease;
+            white-space: nowrap; /* Prevent button text wrapping */
+        }
+        #fill-in-blank-submit:hover:not(:disabled) {
+             background-color: #7aa97a; /* Darker sage */
+        }
+         #fill-in-blank-submit:disabled {
+             background-color: #ccc;
+             cursor: not-allowed;
+         }
+
+
+        #feedback-area {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-top: 20px;
+            min-height: 30px; /* Prevent layout shift */
+        }
+
+        .feedback-correct {
+            color: var(--correct-color);
+        }
+
+        .feedback-incorrect {
+            color: var(--incorrect-color);
+        }
+
+        #score-area {
+            margin-top: 20px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: var(--dull-blue);
+        }
+
+        #next-btn, #results-btn {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: var(--brown);
+            color: white;
+            margin-top: 25px;
+            transition: background-color 0.3s ease;
+            display: none; /* Hidden initially */
+        }
+
+        #next-btn:hover, #results-btn:hover {
+            opacity: 0.9;
+        }
+
+        #results-area {
+             display: none; /* Hidden initially */
+             padding: 30px;
+             background-color: var(--blush-pink);
+             border-radius: 10px;
+             margin-top: 20px;
+        }
+        #results-area h2 {
+            color: var(--brown);
+            margin-bottom: 15px;
+        }
+        #results-area p {
+            font-size: 1.4em;
+            color: var(--dull-blue);
+            font-weight: bold;
+        }
+        #play-again-btn {
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background-color: var(--sage-green);
+            color: white;
+            margin-top: 25px;
+            transition: background-color 0.3s ease;
+        }
+        #play-again-btn:hover {
+             opacity: 0.9;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="trivia-container">
+        <h1>Sam & Breanna Trivia! 💖</h1>
+
+        <div id="question-area">
+            <p id="question-number"></p>
+            <h2 id="question-text">Loading question...</h2>
+        </div>
+
+        <div id="answer-options">
+            <button class="answer-btn" data-index="0"></button>
+            <button class="answer-btn" data-index="1"></button>
+            <button class="answer-btn" data-index="2"></button>
+            <button class="answer-btn" data-index="3"></button>
+        </div>
+
+        <div id="fill-in-blank-area">
+             <input type="text" id="fill-in-blank-input" placeholder="Type 'yes' here...">
+             <button id="fill-in-blank-submit">Submit</button>
+        </div>
+
+        <div id="feedback-area"></div>
+        <div id="score-area">Score: 0</div>
+
+        <button id="next-btn">Next Question</button>
+        <button id="results-btn">Show Results</button>
+
+        <div id="results-area">
+            <h2>Trivia Complete!</h2>
+            <p id="final-score"></p>
+            <button id="play-again-btn">Play Again?</button>
+        </div>
+    </div>
+
+    <script>
+        const triviaQuestions = [
+            // Relationship Basics
+            {
+                question: "When did Sam and Breanna meet?",
+                options: ["March of 2020", "May of 2021", "August of 2021", "February of 2022"],
+                correctAnswer: "May of 2021",
+                type: "mcq"
+            },
+            {
+                question: "Where was their first date?",
+                options: ["In-N-Out", "Legacy Food Hall", "Topgolf", "The movies"],
+                correctAnswer: "Legacy Food Hall",
+                type: "mcq"
+            },
+            {
+                question: "When is their anniversary?",
+                options: ["April 10th", "May 3rd", "June 15th", "August 1st"],
+                correctAnswer: "May 3rd",
+                type: "mcq"
+            },
+            {
+                question: "Who said \"I love you\" first?",
+                options: ["Sam", "Breanna", "Neither (yet!)", "They said it at the same time"],
+                correctAnswer: "Sam",
+                type: "mcq"
+            },
+            // Favorites
+            {
+                question: "What’s Breanna’s favorite dessert?",
+                options: ["Ice cream", "Cheesecake", "Mint brownies", "Brownie sundaes"],
+                correctAnswer: "Mint brownies",
+                type: "mcq"
+            },
+            {
+                question: "What’s Sam and Breanna’s favorite movie to watch together?",
+                options: ["La La Land", "Hitch", "The Proposal", "How to Lose a Guy in 10 Days"],
+                correctAnswer: "Hitch",
+                type: "mcq"
+            },
+            {
+                question: "What song is meaningful to them as a couple?",
+                options: ["Perfect – Ed Sheeran", "Lover – Taylor Swift", "A Thousand Years – Christina Perri", "All of Me – John Legend"],
+                correctAnswer: "Lover – Taylor Swift",
+                type: "mcq"
+            },
+            {
+                question: "What are their favorite colors?",
+                options: ["Blue and Purple", "Green and Green", "Red and Black", "Yellow and Teal"],
+                correctAnswer: "Green and Green",
+                type: "mcq"
+            },
+             // Memories & Adventures
+            {
+                question: "What is Sam’s favorite memory with Breanna?",
+                options: ["First kiss", "Their last date before she left for college", "First road trip together", "Their first movie night"],
+                correctAnswer: "Their last date before she left for college",
+                type: "mcq"
+            },
+            {
+                question: "Where did Sam and Breanna serve their missions?",
+                options: ["Peru and Japan", "Salt Lake City and Cebu", "Naga, Philippines and Phoenix, Arizona", "Brazil and Idaho"],
+                correctAnswer: "Naga, Philippines and Phoenix, Arizona",
+                type: "mcq"
+            },
+            {
+                question: "What’s their favorite activity to do together?",
+                options: ["Hiking", "Watching movies", "Playing card games", "Cooking together"],
+                correctAnswer: "Watching movies",
+                type: "mcq"
+            },
+             {
+                question: "What’s their favorite restaurant to eat at?",
+                options: ["Chick-fil-A", "Raising Cane’s", "Velvet Taco", "Texas Roadhouse"],
+                correctAnswer: "Velvet Taco",
+                type: "mcq"
+            },
+            // Fill in the Blank
+            {
+                question: "Does Sam love Breanna?",
+                correctAnswer: "yes",
+                type: "fib"
+            }
+        ];
+
+        const questionTextEl = document.getElementById('question-text');
+        const questionNumberEl = document.getElementById('question-number');
+        const answerOptionsEl = document.getElementById('answer-options');
+        // Get initial buttons - NOTE: These references become stale after cloning, re-query inside displayQuestion
+        // let answerButtons = answerOptionsEl.querySelectorAll('.answer-btn'); // Commented out as direct use is tricky with cloning
+        const feedbackEl = document.getElementById('feedback-area');
+        const scoreEl = document.getElementById('score-area');
+        const nextBtn = document.getElementById('next-btn');
+        const resultsBtn = document.getElementById('results-btn');
+        const resultsAreaEl = document.getElementById('results-area');
+        const finalScoreEl = document.getElementById('final-score');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const fillInBlankArea = document.getElementById('fill-in-blank-area');
+        const fillInBlankInput = document.getElementById('fill-in-blank-input');
+        // Get initial submit button - will be replaced/re-queried too
+        let fillInBlankSubmit = document.getElementById('fill-in-blank-submit');
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let questionStartTime;
+
+        function startGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            scoreEl.textContent = `Score: ${score}`;
+            feedbackEl.textContent = '';
+            feedbackEl.className = ''; // Clear feedback class
+            nextBtn.style.display = 'none';
+            resultsBtn.style.display = 'none';
+            resultsAreaEl.style.display = 'none';
+            // Ensure correct areas are shown/hidden at start
+            fillInBlankArea.style.display = 'none';
+            answerOptionsEl.style.display = 'grid'; // Default view
+            questionTextEl.style.display = 'block';
+            scoreEl.style.display = 'block';
+            questionNumberEl.style.display = 'block';
+
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            feedbackEl.textContent = ''; // Clear feedback
+            feedbackEl.className = ''; // Clear feedback class
+            const currentQuestion = triviaQuestions[currentQuestionIndex];
+
+            questionTextEl.textContent = currentQuestion.question;
+            questionNumberEl.textContent = `Question ${currentQuestionIndex + 1} of ${triviaQuestions.length}`;
+
+            if (currentQuestion.type === "mcq") {
+                answerOptionsEl.style.display = 'grid';
+                fillInBlankArea.style.display = 'none';
+
+                // --- ** Key Update Area (Same logic as previous fix) ** ---
+                // 1. Get the *current* set of buttons in the DOM *just before updating*.
+                let currentButtons = answerOptionsEl.querySelectorAll('.answer-btn');
+
+                // 2. Iterate through the *options* for the new question.
+                currentQuestion.options.forEach((option, index) => {
+                    // 3. Select the corresponding button *from the current set*.
+                    // Make sure there is a button at this index (safety check)
+                     if (index < currentButtons.length) {
+                        const button = currentButtons[index];
+
+                        // 4. Clone the button to effectively remove old listeners.
+                        const newButton = button.cloneNode(true); // Clone includes content
+
+                        // 5. Update the text content on the CLONE.
+                        newButton.textContent = option;
+
+                        // 6. Reset styles and states on the CLONE.
+                        newButton.disabled = false;
+                        newButton.className = 'answer-btn'; // Reset classes fully
+                        newButton.dataset.correct = option === currentQuestion.correctAnswer;
+
+                        // 7. Add the event listener to the CLONE.
+                        newButton.addEventListener('click', handleMCQAnswer);
+
+                        // 8. Replace the original button in the DOM with the updated CLONE.
+                        button.parentNode.replaceChild(newButton, button);
+                    }
+                });
+                 // --- ** End Key Update Area ** ---
+
+            } else if (currentQuestion.type === "fib") {
+                answerOptionsEl.style.display = 'none';
+                fillInBlankArea.style.display = 'flex';
+                fillInBlankInput.value = '';
+                fillInBlankInput.disabled = false;
+                fillInBlankInput.style.borderColor = 'var(--dull-blue)'; // Reset border
+
+                // Clone/replace submit button to ensure clean listener state
+                const newSubmitButton = fillInBlankSubmit.cloneNode(true);
+                fillInBlankSubmit.parentNode.replaceChild(newSubmitButton, fillInBlankSubmit);
+                newSubmitButton.disabled = false;
+                // Make sure the button reference is updated before adding listener
+                fillInBlankSubmit = newSubmitButton;
+                fillInBlankSubmit.addEventListener('click', handleFIBAnswer);
+
+            }
+
+            nextBtn.style.display = 'none';
+            resultsBtn.style.display = 'none';
+            questionStartTime = Date.now();
+        }
+
+        function handleMCQAnswer(event) {
+            const selectedButton = event.target;
+            // Ensure we are working with the button itself if user clicks inside (e.g., on text)
+            const buttonElement = selectedButton.closest('.answer-btn');
+            if (!buttonElement || buttonElement.disabled) return; // Exit if click wasn't on a button or button already disabled
+
+            const isCorrect = buttonElement.dataset.correct === 'true';
+            const timeTaken = (Date.now() - questionStartTime) / 1000;
+
+            // Disable all buttons immediately after one is clicked
+             answerOptionsEl.querySelectorAll('.answer-btn').forEach(btn => btn.disabled = true);
+
+            let pointsAwarded = 0;
+            if (isCorrect) {
+                pointsAwarded = 100;
+                let bonusPoints = 0;
+                if (timeTaken <= 2) {
+                    bonusPoints = 75;
+                } else if (timeTaken <= 3) {
+                    bonusPoints = 50;
+                } else if (timeTaken <= 5) {
+                    bonusPoints = 20;
+                }
+                pointsAwarded += bonusPoints;
+                score += pointsAwarded;
+
+                buttonElement.classList.add('correct');
+                feedbackEl.textContent = `Correct! +${pointsAwarded} points (${bonusPoints > 0 ? `incl. ${bonusPoints} bonus` : 'no bonus'})`;
+                feedbackEl.className = 'feedback-correct';
+            } else {
+                 buttonElement.classList.add('selected-incorrect');
+                 feedbackEl.textContent = `Incorrect! The correct answer was: ${triviaQuestions[currentQuestionIndex].correctAnswer}`;
+                 feedbackEl.className = 'feedback-incorrect';
+
+                 answerOptionsEl.querySelectorAll('.answer-btn').forEach(btn => {
+                     if (btn.dataset.correct === 'true') {
+                         btn.classList.add('correct'); // Highlight correct one green
+                     } else if (btn !== buttonElement) {
+                          // Only add 'incorrect' (dimming) class to OTHERS that are wrong
+                          btn.classList.add('incorrect');
+                     }
+                 });
+            }
+
+            scoreEl.textContent = `Score: ${score}`;
+            showNextOrResultsButton();
+        }
+
+         function handleFIBAnswer() {
+             // Prevent multiple submissions if clicked quickly
+             if (fillInBlankInput.disabled) return;
+
+             const userAnswer = fillInBlankInput.value.trim().toLowerCase();
+             const correctAnswer = triviaQuestions[currentQuestionIndex].correctAnswer.toLowerCase();
+             const timeTaken = (Date.now() - questionStartTime) / 1000;
+
+             fillInBlankInput.disabled = true;
+             fillInBlankSubmit.disabled = true;
+
+             let pointsAwarded = 0;
+             if (userAnswer === correctAnswer) {
+                 pointsAwarded = 100;
+                 let bonusPoints = 0;
+                 if (timeTaken <= 2) {
+                     bonusPoints = 75;
+                 } else if (timeTaken <= 3) {
+                     bonusPoints = 50;
+                 } else if (timeTaken <= 5) {
+                     bonusPoints = 20;
+                 }
+                 pointsAwarded += bonusPoints;
+                 score += pointsAwarded;
+
+                 feedbackEl.textContent = `Correct! +${pointsAwarded} points (${bonusPoints > 0 ? `incl. ${bonusPoints} bonus` : 'no bonus'})`;
+                 feedbackEl.className = 'feedback-correct';
+                 fillInBlankInput.style.borderColor = 'var(--correct-color)';
+             } else {
+                 feedbackEl.textContent = `Incorrect! The answer was: ${triviaQuestions[currentQuestionIndex].correctAnswer}`;
+                 feedbackEl.className = 'feedback-incorrect';
+                 fillInBlankInput.style.borderColor = 'var(--incorrect-color)';
+             }
+
+              scoreEl.textContent = `Score: ${score}`;
+              showNextOrResultsButton();
+         }
+
+        function showNextOrResultsButton() {
+             if (currentQuestionIndex < triviaQuestions.length - 1) {
+                nextBtn.style.display = 'inline-block';
+            } else {
+                resultsBtn.style.display = 'inline-block';
+            }
+        }
+
+        function handleNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < triviaQuestions.length) {
+                displayQuestion(); // Call displayQuestion for the *new* index
+            }
+            // No else needed, results button handles the end
+        }
+
+        function showResults() {
+            questionTextEl.style.display = 'none';
+            answerOptionsEl.style.display = 'none';
+            fillInBlankArea.style.display = 'none';
+            feedbackEl.style.display = 'none'; // Hide feedback on results screen
+            scoreEl.style.display = 'none';
+            nextBtn.style.display = 'none';
+            resultsBtn.style.display = 'none';
+            questionNumberEl.style.display = 'none';
+
+            resultsAreaEl.style.display = 'block';
+            finalScoreEl.textContent = `Your Final Score: ${score}`;
+        }
+
+        // --- Event Listeners Setup ---
+        // Add listeners for static buttons
+        nextBtn.addEventListener('click', handleNextQuestion);
+        resultsBtn.addEventListener('click', showResults);
+        playAgainBtn.addEventListener('click', startGame);
+
+        // Add initial listener for the FIB submit button.
+        // NOTE: This listener is effectively replaced inside displayQuestion
+        // when the button is cloned for the FIB question.
+        fillInBlankSubmit.addEventListener('click', handleFIBAnswer);
+
+        // Start the game when the page loads
+        document.addEventListener('DOMContentLoaded', startGame);
+
+    </script>
+
+</body>
+</html>
